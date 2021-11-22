@@ -89,6 +89,10 @@ const donhangSchema = new mongoose.Schema(
     dasudung: Boolean,
     ngaytao: String, // dùng cho đon hàng được tạo đầu tiên, dù là đơn hàng subdonhang
     ngaydathang: String, // Ngày bên này đặt hàng bên kia, dùng ngày này để lưu ngày nhận cc, vt, ngl
+    xacnhan: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

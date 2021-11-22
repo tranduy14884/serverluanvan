@@ -45,5 +45,4 @@ userRouter.put("/single/:id", async (req, res) => {
     res.send({ message: error.message, success: false });
   }
 });
-
 module.exports = userRouter;
