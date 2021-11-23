@@ -6,6 +6,7 @@ var bcrypt = require("bcryptjs");
 const Langnghe = require("../models/langngheModel");
 const Daily2 = require("../models/daily2Model");
 const Daily1 = require("../models/daily1Model");
+const Donhang = require("../models/donhangModel");
 
 // them ho dan
 hodanRouter.post("/them", async (req, res) => {
@@ -397,6 +398,107 @@ hodanRouter.get("/danhsachvattu/:hodanId", async (req, res) => {
     }
     dsvattu = dsvattu.items.filter((item) => item.vattu);
     res.send({ dsvattu, success: true });
+  } catch (error) {
+    res.send({ message: error.message, success: false });
+  }
+});
+
+// bao cao don hang -> within donhangRouter
+
+// ds don hang thuoc ho dan
+hodanRouter.get("/dsdonhang/:hodanId", async (req, res) => {
+  try {
+    const { donhang: dsdonhang } = await Hodan.findById(req.params.hodanId)
+      .select("donhang")
+      .populate({
+        path: "donhang",
+        populate: {
+          path: "dssanpham dscongcu dsvattu dsnguyenlieu",
+          populate: {
+            path: "sanpham congcu vattu nguyenlieu",
+          },
+        },
+      })
+      .populate({
+        path: "donhang",
+        populate: {
+          path: "from",
+          populate: {
+            path: "bophankd giamsatvung daily1 daily2",
+          },
+        },
+      })
+      .populate({
+        path: "donhang",
+        populate: {
+          path: "to",
+          populate: {
+            path: "giamsatvung daily1 daily2 hodan",
+          },
+        },
+      })
+      .populate({
+        path: "donhang",
+        populate: {
+          path: "dssanpham",
+          populate: {
+            path: "sanpham",
+            populate: {
+              path: "loaisanpham dscongcu.congcu dsvattu.vattu dsnguyenlieu.nguyenlieu",
+            },
+          },
+        },
+      });
+
+    res.send({ dsdonhang, success: true });
+  } catch (error) {
+    res.send({ message: error.message, success: false });
+  }
+});
+
+// ho dan xac nhan don hang
+hodanRouter.put("/xacnhandh/:hodanId/:donhangId", async (req, res) => {
+  try {
+    const hodan = await Hodan.findById(req.params.hodanId);
+    const donhang = await Donhang.findById(req.params.donhangId);
+
+    // Hodan
+    let dsspTemp = donhang.dssanpham.map((sp) => ({
+      donhang: donhang._id.toString(),
+      sanpham: sp.sanpham,
+      soluong: sp.soluong,
+      soluonghoanthanh: sp.soluonghoanthanh,
+      ngaytao: donhang.ngaydathang,
+    }));
+    let dsccTemp = donhang.dscongcu.map((cc) => ({
+      donhang: donhang._id.toString(),
+      congcu: cc.congcu,
+      soluong: cc.soluong,
+      ngaytao: donhang.ngaydathang,
+    }));
+    let dsvtTemp = donhang.dsvattu.map((vt) => ({
+      donhang: donhang._id.toString(),
+      vattu: vt.vattu,
+      soluong: vt.soluong,
+      ngaytao: donhang.ngaydathang,
+    }));
+    let dsnglTemp = donhang.dsnguyenlieu.map((ngl) => ({
+      donhang: donhang._id.toString(),
+      nguyenlieu: ngl.nguyenlieu,
+      khoiluong: ngl.khoiluong,
+      ngaytao: donhang.ngaydathang,
+    }));
+    hodan.dssanpham = [...dsspTemp, ...hodan.dssanpham];
+    hodan.dscongcu = [...dsccTemp, ...hodan.dscongcu];
+    hodan.dsvattu = [...dsvtTemp, ...hodan.dsvattu];
+    hodan.dsnguyenlieu = [...dsnglTemp, ...hodan.dsnguyenlieu];
+    await hodan.save();
+
+    // Donhang
+    donhang.xacnhan = true;
+    await donhang.save();
+
+    res.send({ success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });
   }

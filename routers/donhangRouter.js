@@ -192,7 +192,7 @@ donhangRouter.put("/bophankdtogsv", async (req, res) => {
       await bpkd.save();
     }
 
-    res.send({ success: true });
+    res.send({ savedDonhang, success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });
   }
