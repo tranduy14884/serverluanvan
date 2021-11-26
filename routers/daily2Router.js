@@ -100,13 +100,23 @@ daily2Router.get("/danhsach", async (req, res) => {
 // lay thong tin 1 dai ly
 daily2Router.get("/single/:id", async (req, res) => {
   try {
-    const daily2 = await Daily2.findById(req.params.id).populate("user");
-    if (!daily2) {
-      return res.send({
-        message: "Không tìm thấy đại lý 2 nào",
-        success: false,
+    const daily2 = await Daily2.findById(req.params.id)
+      .populate({
+        path: "hodan user donhang dscongcu dsvattu dsnguyenlieu",
+      })
+      .populate({
+        path: "hodan",
+        populate: {
+          path: "langnghe loaisanpham",
+        },
+      })
+      .populate({
+        path: "dscongcu dsvattu dsnguyenlieu dssanpham",
+        populate: {
+          path: "donhang congcu vattu nguyenlieu sanpham",
+        },
       });
-    }
+
     res.send({ daily2, success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });
@@ -444,7 +454,6 @@ daily2Router.get("/dshodan/:daily2Id", async (req, res) => {
         success: false,
       });
     }
-    hodan = hodan.filter((hd) => hd.active);
 
     res.send({ hodan, success: true });
   } catch (error) {
@@ -578,6 +587,20 @@ daily2Router.get("/tongquan/:daily2Id", async (req, res) => {
       dsdonhang: daily2.donhang.length,
       success: true,
     });
+  } catch (error) {
+    res.send({ message: error.message, success: false });
+  }
+});
+
+// lay ds donhang chua duyet hien thi badge
+daily2Router.get("/dsshowbadge/:daily2Id", async (req, res) => {
+  try {
+    let { donhang } = await Daily2.findById(req.params.daily2Id)
+      .select("donhang")
+      .populate("donhang");
+    donhang = donhang.filter((dh) => !dh.xacnhan);
+
+    res.send({ donhangBadge: donhang.length, success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });
   }

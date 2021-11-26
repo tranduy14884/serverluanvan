@@ -203,14 +203,14 @@ hodanRouter.put("/multiple", async (req, res) => {
 hodanRouter.get("/single/:id", async (req, res) => {
   try {
     const hodan = await Hodan.findById(req.params.id)
-      .populate("user")
-      .populate("langnghe loaisanpham");
-    if (!hodan) {
-      return res.send({
-        message: "Không tìm thấy hộ dân nào",
-        success: false,
+      .populate("donhang")
+      .populate({
+        path: "dscongcu dsvattu dsnguyenlieu dssanpham",
+        populate: {
+          path: "donhang congcu vattu nguyenlieu sanpham",
+        },
       });
-    }
+
     res.send({ hodan, success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });

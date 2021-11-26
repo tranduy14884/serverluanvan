@@ -7,6 +7,7 @@ const Giamsatvung = require("../models/giamsatvungModel");
 const Hodan = require("../models/hodanModel");
 const { getCurrentDatetime } = require("../utils");
 const donhangRouter = express.Router();
+const upload = require("../middleware/imageUpload");
 
 // them don hang
 donhangRouter.post("/them", async (req, res) => {
@@ -125,6 +126,20 @@ donhangRouter.get("/single/:id", async (req, res) => {
       });
 
     res.send({ donhang, success: true });
+  } catch (error) {
+    res.send({ message: error.message, success: false });
+  }
+});
+
+// Xoa nhieu don hang
+donhangRouter.put("/xoanhieudonhang", async (req, res) => {
+  const { arrOfIds } = req.body;
+  try {
+    for (const item of arrOfIds) {
+      await Donhang.findByIdAndDelete(item);
+    }
+
+    res.send({ success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });
   }
@@ -390,7 +405,7 @@ donhangRouter.put("/daily2tohodan", async (req, res) => {
 });
 
 // ho dan bao cao don hang
-donhangRouter.put("/baocao", async (req, res) => {
+donhangRouter.put("/baocao", upload.single("hinhanh"), async (req, res) => {
   const { donhangId, sanphamId, soluong } = req.body;
   try {
     // Donhang coll
@@ -404,6 +419,7 @@ donhangRouter.put("/baocao", async (req, res) => {
           }
         : sp
     );
+    donhang.hinhanhbaocao = req.file ? req.file.filename : "";
     await donhang.save();
     // Daily2 coll
     const daily2 = await Daily2.findById(donhang.from.daily2).populate(

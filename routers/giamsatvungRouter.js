@@ -82,13 +82,17 @@ giamsatvungRouter.get("/danhsach", async (req, res) => {
 // lay thong tin 1 gsv
 giamsatvungRouter.get("/single/:id", async (req, res) => {
   try {
-    const gsv = await Giamsatvung.findById(req.params.id).populate("user");
-    if (!gsv) {
-      return res.send({
-        message: "Không tìm thấy giám sát vùng nào",
-        success: false,
+    const gsv = await Giamsatvung.findById(req.params.id)
+      .populate({
+        path: "user daily1 daily2 donhang dscongcu dsnguyenlieu dsvattu dssanpham",
+      })
+      .populate({
+        path: "dscongcu dsvattu dsnguyenlieu dssanpham",
+        populate: {
+          path: "donhang congcu vattu nguyenlieu sanpham",
+        },
       });
-    }
+
     res.send({ gsv, success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });
@@ -212,7 +216,6 @@ giamsatvungRouter.get("/dsdaily1/:gsvId", async (req, res) => {
         success: false,
       });
     }
-    daily1 = daily1.filter((dl1) => dl1.active);
 
     res.send({ daily1, success: true });
   } catch (error) {
@@ -347,6 +350,30 @@ giamsatvungRouter.get("/tongquan/:gsvId", async (req, res) => {
       dscongcu: gsv.dscongcu.length,
       dsvattu: gsv.dsvattu.length,
       dsnguyenlieu: gsv.dsnguyenlieu.length,
+      success: true,
+    });
+  } catch (error) {
+    res.send({ message: error.message, success: false });
+  }
+});
+
+// lay ds daily2, donhang chua duyet hien thi badge
+giamsatvungRouter.get("/dsshowbadge/:gsvId", async (req, res) => {
+  try {
+    // Daily2
+    let { daily2 } = await Giamsatvung.findById(req.params.gsvId)
+      .select("daily2")
+      .populate("daily2");
+    daily2 = daily2.filter((dl2) => !dl2.user && !dl2.giamsatvung);
+    // Donhang
+    let { donhang } = await Giamsatvung.findById(req.params.gsvId)
+      .select("donhang")
+      .populate("donhang");
+    donhang = donhang.filter((dh) => !dh.xacnhan);
+
+    res.send({
+      daily2Badge: daily2.length,
+      donhangBadge: donhang.length,
       success: true,
     });
   } catch (error) {

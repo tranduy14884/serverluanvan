@@ -684,4 +684,28 @@ bophankdRouter.get("/dscongcu/:bophankdId", async (req, res) => {
   }
 });
 
+// lay ds daily1 daily2 chua duyet hien thi badge
+bophankdRouter.get("/dsshowbadge/:bophankdId", async (req, res) => {
+  try {
+    // Daily1
+    let { daily1 } = await Bophankd.findById(req.params.bophankdId)
+      .select("daily1")
+      .populate("daily1");
+    daily1 = daily1.filter((dl1) => !dl1.user);
+    // Daily2
+    let { daily2 } = await Bophankd.findById(req.params.bophankdId)
+      .select("daily2")
+      .populate("daily2");
+    daily2 = daily2.filter((dl2) => !dl2.user && !dl2.bophankd);
+
+    res.send({
+      daily1Badge: daily1.length,
+      daily2Badge: daily2.length,
+      success: true,
+    });
+  } catch (error) {
+    res.send({ message: error.message, success: false });
+  }
+});
+
 module.exports = bophankdRouter;
