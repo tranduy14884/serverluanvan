@@ -304,99 +304,66 @@ hodanRouter.get("/dscongcuphanphat/:hodanId", async (req, res) => {
 });
 
 // lay ds phan phat VAT TU thuoc ho dan
-hodanRouter.get("/dsvattuphanphat/:hodanId", async (req, res) => {
+hodanRouter.get("/dsvattu/:hodanId", async (req, res) => {
   try {
-    let { dsphanphat } = await Hodan.findById(req.params.hodanId)
-      .select("dsphanphat")
+    let { dsvattu } = await Hodan.findById(req.params.hodanId)
+      .select("dsvattu")
       .populate({
-        path: "dsphanphat",
-        populate: {
-          path: "phanphat",
-          populate: {
-            path: "from to items",
-            populate: {
-              path: "bophankd daily1 daily2 hodan vattu",
-            },
-          },
-        },
+        path: "dsvattu",
+        populate: "donhang vattu",
       });
-    dsphanphat = dsphanphat.filter(
-      (item) => item.phanphat.phanphattype === "vattu"
-    );
-    res.send({ dsphanphat, success: true });
+
+    res.send({ dsvattu, success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });
   }
 });
 
 // lay danh sach CONG CU thuoc ho dan
-hodanRouter.get("/danhsachcongcu/:hodanId", async (req, res) => {
+hodanRouter.get("/dscongcu/:hodanId", async (req, res) => {
   try {
-    let dscongcu = await Hodan.findById(req.params.hodanId)
-      .select("items")
+    let { dscongcu } = await Hodan.findById(req.params.hodanId)
+      .select("dscongcu")
       .populate({
-        path: "items",
+        path: "dscongcu",
         populate: {
-          path: "phanphat",
-          populate: {
-            path: "from to",
-            populate: {
-              path: "bophankd daily1 daily2 hodan",
-            },
-          },
-        },
-      })
-      .populate({
-        path: "items",
-        populate: {
-          path: "congcu",
+          path: "donhang congcu",
         },
       });
 
-    if (!dscongcu) {
-      return res.send({
-        message: "Không có công cụ nào trong kho",
-        success: false,
-      });
-    }
-    dscongcu = dscongcu.items.filter((item) => item.congcu);
     res.send({ dscongcu, success: true });
+  } catch (error) {
+    res.send({ message: error.message, success: false });
+  }
+});
+// lay danh sach nguyenlieu thuoc hodan
+hodanRouter.get("/dsnguyenlieu/:hodanId", async (req, res) => {
+  try {
+    const { dsnguyenlieu } = await Hodan.findById(req.params.hodanId)
+      .select("dsnguyenlieu")
+      .populate({
+        path: "dsnguyenlieu",
+        populate: {
+          path: "donhang nguyenlieu",
+        },
+      });
+    res.send({ dsnguyenlieu, success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });
   }
 });
 
 // lay danh sach VAT TU thuoc ho dan
-hodanRouter.get("/danhsachvattu/:hodanId", async (req, res) => {
+hodanRouter.get("/dsvattu/:hodanId", async (req, res) => {
   try {
-    let dsvattu = await Hodan.findById(req.params.hodanId)
-      .select("items")
+    const { dsnguyenlieu } = await Hodan.findById(req.params.hodanId)
+      .select("dsvattu")
       .populate({
-        path: "items",
+        path: "dsvattu",
         populate: {
-          path: "phanphat",
-          populate: {
-            path: "from to",
-            populate: {
-              path: "bophankd daily1 daily2 hodan",
-            },
-          },
-        },
-      })
-      .populate({
-        path: "items",
-        populate: {
-          path: "vattu",
+          path: "donhang vattu",
         },
       });
-
-    if (!dsvattu) {
-      return res.send({
-        message: "Không có công cụ nào trong kho",
-        success: false,
-      });
-    }
-    dsvattu = dsvattu.items.filter((item) => item.vattu);
     res.send({ dsvattu, success: true });
   } catch (error) {
     res.send({ message: error.message, success: false });
@@ -504,4 +471,22 @@ hodanRouter.put("/xacnhandh/:hodanId/:donhangId", async (req, res) => {
   }
 });
 
+// doi mat khau hodan
+hodanRouter.patch("/changepassword/:id", async (req, res) => {
+  const { matkhaucu, matkhaumoi } = req.body;
+  try {
+    // const hodan = await Hodan.findById(req.params.id);
+    // const user = await User.findById(hodan.user);
+    // if (bcrypt.compareSync(matkhaucu, user.matkhau)) {
+    //   user.matkhau = bcrypt.hashSync(matkhaumoi, 8);
+    //   await user.save();
+    //   res.send({ updatedHodan, success: true });
+    // } else {
+    //   res.send({ Error: "Mat khau cu chua chinh xac" });
+    // }
+    res.send({ contar :  req.body.matkhaumoi, asdsa : req.params});
+  } catch (error) {
+    res.send({ message: error.message, success: false });
+  }
+});
 module.exports = hodanRouter;
